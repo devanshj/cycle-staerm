@@ -3,22 +3,26 @@ import xs, { Stream } from "xstream"
 import { Driver } from "@cycle/run"
 import { adapt } from "@cycle/run/lib/adapt"
 
-export type StreamSinks = {
-    state$: Stream<TerminalState>,
-    keypressMiddleware$?: Stream<KeypressMiddleware>
+export type StreamSink = Stream<{
+    state: TerminalState,
+    keypressMiddleware?: KeypressMiddleware
+}>
+
+export type StreamSource = {
+	keypress$: Stream<KeypressData>,
+	state$: Stream<TerminalState>
 }
 
-export type StreamSources = {
-    keypress$: Stream<KeypressData>
-}
-
-export const makeStaermDriver = (terminal: Terminal): Driver<StreamSinks, StreamSources> =>
-    ({ state$, keypressMiddleware$ }: StreamSinks): StreamSources => {
-        state$.addListener({ next: terminal.state.set });
-
-        if (keypressMiddleware$) {
-            keypressMiddleware$.addListener({ next: terminal.io.keypress.middleware.set });
-        }
+export const makeStaermDriver = (terminal: Terminal): Driver<StreamSink, StreamSource> =>
+    (staermSink$: StreamSink): StreamSource => {
+        staermSink$.addListener({ 
+			next: ({ state, keypressMiddleware }) => {
+				terminal.state.set(state)
+				if (keypressMiddleware) {
+					terminal.io.keypress.middleware.set(keypressMiddleware)
+				}
+			}
+		});
 
         return {
             keypress$: adapt(xs.create({
@@ -26,7 +30,13 @@ export const makeStaermDriver = (terminal: Terminal): Driver<StreamSinks, Stream
                     bindMethod(listener, "next")
                 ),
                 stop: () => {}
-            }))
+			})),
+			state$: adapt(xs.create({
+                start: listener => terminal.state.listen(
+                    bindMethod(listener, "next")
+                ),
+                stop: () => {}
+			}))
         }
     }
 
