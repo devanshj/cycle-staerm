@@ -1,4 +1,4 @@
-read -p "you sure? (y/*)? " shouldContinue
+read -p "you sure? (y/*) " shouldContinue
 if [ "$shouldContinue" != "y" ]; then
 	exit
 fi

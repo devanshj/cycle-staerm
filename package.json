@@ -1,10 +1,11 @@
 {
 	"name": "cycle-staerm",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "A cycle.js driver for staerm",
 	"main": "index.js",
 	"peerDependencies": {
-		"staerm": "^2.1.0",
+		"@cycle/run": "^5.2.0",
+		"staerm": "^3.0.0",
 		"xstream": "^11.11.0"
 	},
 	"dependencies": {},
